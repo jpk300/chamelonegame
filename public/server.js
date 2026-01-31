@@ -1,0 +1,230 @@
+const express = require("express");
+const http = require("http");
+const { WebSocketServer } = require("ws");
+
+const app = express();
+const server = http.createServer(app);
+const wss = new WebSocketServer({ server });
+
+const PORT = process.env.PORT || 3000;
+
+app.use(express.static("public"));
+
+const WORDS = [
+  "volcano",
+  "pineapple",
+  "giraffe",
+  "keyboard",
+  "rainbow",
+  "spaceship",
+  "cucumber",
+  "lighthouse",
+  "backpack",
+  "snowflake",
+  "accordion",
+  "mountain",
+  "bicycle",
+  "fireworks",
+  "marshmallow"
+];
+
+const state = {
+  phase: "lobby",
+  secretWord: null,
+  chameleonId: null,
+  clues: {},
+  votes: {},
+  timerEndsAt: null,
+  lastResult: null
+};
+
+const players = new Map();
+
+function randomWord() {
+  return WORDS[Math.floor(Math.random() * WORDS.length)];
+}
+
+function broadcast(payload) {
+  const message = JSON.stringify(payload);
+  for (const player of players.values()) {
+    player.ws.send(message);
+  }
+}
+
+function sendToPlayer(player, payload) {
+  if (!player) return;
+  player.ws.send(JSON.stringify(payload));
+}
+
+function publicState() {
+  return {
+    phase: state.phase,
+    timerEndsAt: state.timerEndsAt,
+    players: Array.from(players.values()).map((player) => ({
+      id: player.id,
+      name: player.name,
+      clue: state.clues[player.id] || null,
+      vote: state.votes[player.id] || null
+    })),
+    lastResult: state.lastResult
+  };
+}
+
+function resetRoundData() {
+  state.secretWord = null;
+  state.chameleonId = null;
+  state.clues = {};
+  state.votes = {};
+  state.timerEndsAt = null;
+  state.lastResult = null;
+}
+
+function startCluePhase() {
+  state.phase = "clue";
+  state.timerEndsAt = Date.now() + 7000;
+  broadcast({ type: "state", data: publicState() });
+
+  setTimeout(() => {
+    if (state.phase === "clue") {
+      state.phase = "vote";
+      state.timerEndsAt = null;
+      broadcast({ type: "state", data: publicState() });
+    }
+  }, 7000);
+}
+
+function startRound() {
+  if (players.size < 3) {
+    broadcast({
+      type: "error",
+      message: "Need at least 3 players to start a round."
+    });
+    return;
+  }
+
+  resetRoundData();
+  state.secretWord = randomWord();
+  const playerIds = Array.from(players.keys());
+  state.chameleonId = playerIds[Math.floor(Math.random() * playerIds.length)];
+
+  for (const player of players.values()) {
+    sendToPlayer(player, {
+      type: "secret",
+      word: player.id === state.chameleonId ? null : state.secretWord
+    });
+  }
+
+  startCluePhase();
+}
+
+function finishVoting() {
+  const votes = Object.values(state.votes);
+  const unanimousTarget = votes.length === players.size && votes.every((vote) => vote === votes[0]);
+  const suspectedId = unanimousTarget ? votes[0] : null;
+
+  if (suspectedId && suspectedId === state.chameleonId) {
+    state.phase = "guess";
+    broadcast({
+      type: "state",
+      data: publicState()
+    });
+    sendToPlayer(players.get(state.chameleonId), {
+      type: "guess_prompt"
+    });
+    return;
+  }
+
+  state.phase = "reveal";
+  state.lastResult = {
+    outcome: "chameleon-escaped",
+    secretWord: state.secretWord,
+    chameleonId: state.chameleonId,
+    unanimous: Boolean(suspectedId)
+  };
+  broadcast({ type: "state", data: publicState() });
+}
+
+function handleGuess(guess) {
+  const correct = guess.trim().toLowerCase() === state.secretWord.toLowerCase();
+  state.phase = "reveal";
+  state.lastResult = {
+    outcome: correct ? "chameleon-wins" : "team-wins",
+    secretWord: state.secretWord,
+    chameleonId: state.chameleonId,
+    unanimous: true,
+    guess
+  };
+  broadcast({ type: "state", data: publicState() });
+}
+
+wss.on("connection", (ws) => {
+  const playerId = `player-${Math.random().toString(36).slice(2, 10)}`;
+  const player = { id: playerId, name: "", ws };
+  players.set(playerId, player);
+
+  ws.send(
+    JSON.stringify({
+      type: "init",
+      id: playerId,
+      state: publicState()
+    })
+  );
+
+  ws.on("message", (raw) => {
+    let message;
+    try {
+      message = JSON.parse(raw.toString());
+    } catch (error) {
+      return;
+    }
+
+    if (message.type === "join") {
+      player.name = message.name?.trim() || "Player";
+      broadcast({ type: "state", data: publicState() });
+      return;
+    }
+
+    if (message.type === "start_round") {
+      if (state.phase === "clue" || state.phase === "vote" || state.phase === "guess") {
+        return;
+      }
+      startRound();
+      return;
+    }
+
+    if (message.type === "submit_clue" && state.phase === "clue") {
+      state.clues[player.id] = message.clue?.trim() || "";
+      broadcast({ type: "state", data: publicState() });
+      return;
+    }
+
+    if (message.type === "submit_vote" && state.phase === "vote") {
+      if (!players.has(message.targetId)) return;
+      state.votes[player.id] = message.targetId;
+      broadcast({ type: "state", data: publicState() });
+
+      if (Object.keys(state.votes).length === players.size) {
+        finishVoting();
+      }
+      return;
+    }
+
+    if (message.type === "chameleon_guess" && state.phase === "guess") {
+      if (player.id !== state.chameleonId) return;
+      handleGuess(message.guess || "");
+    }
+  });
+
+  ws.on("close", () => {
+    players.delete(playerId);
+    if (players.size === 0) {
+      resetRoundData();
+      state.phase = "lobby";
+    }
+    broadcast({ type: "state", data: publicState() });
+  });
+});
+
+server.listen(PORT, () => {
+  console.log(`Chameleon game server running on http://localhost:${PORT}`);
+});

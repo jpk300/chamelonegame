@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chameleon Game</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header>
+        <h1>Chameleon Game</h1>
+        <p class="subtitle">Local multiplayer bluffing game</p>
+      </header>
+
+      <section class="panel" id="join-panel">
+        <h2>Join the table</h2>
+        <form id="join-form">
+          <label for="name-input">Your name</label>
+          <input id="name-input" type="text" placeholder="e.g. Taylor" required />
+          <button type="submit">Join Game</button>
+        </form>
+      </section>
+
+      <section class="panel" id="status-panel">
+        <div>
+          <h2>Round status</h2>
+          <p id="phase-text">Waiting for players...</p>
+          <p id="timer-text"></p>
+        </div>
+        <button id="start-button" type="button">Start Round</button>
+      </section>
+
+      <section class="panel" id="secret-panel">
+        <h2>Your secret word</h2>
+        <p id="secret-word">Join to receive a word.</p>
+      </section>
+
+      <section class="panel" id="clue-panel">
+        <h2>Give your clue (7 seconds)</h2>
+        <form id="clue-form">
+          <input id="clue-input" type="text" placeholder="One-word clue" />
+          <button type="submit">Send clue</button>
+        </form>
+      </section>
+
+      <section class="panel" id="clues-panel">
+        <h2>Clues</h2>
+        <ul id="clues-list"></ul>
+      </section>
+
+      <section class="panel" id="vote-panel">
+        <h2>Vote for the chameleon</h2>
+        <div id="vote-options"></div>
+      </section>
+
+      <section class="panel" id="guess-panel">
+        <h2>Chameleon guess</h2>
+        <form id="guess-form">
+          <input id="guess-input" type="text" placeholder="Secret word" />
+          <button type="submit">Submit guess</button>
+        </form>
+      </section>
+
+      <section class="panel" id="results-panel">
+        <h2>Round results</h2>
+        <div id="results-output"></div>
+      </section>
+
+      <section class="panel" id="players-panel">
+        <h2>Players</h2>
+        <ul id="players-list"></ul>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
