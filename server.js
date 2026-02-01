@@ -94,6 +94,14 @@ function resetRoundData() {
   }
 }
 
+function resetGame() {
+  resetRoundData();
+  state.phase = "lobby";
+  for (const player of players.values()) {
+    player.score = 0;
+  }
+}
+
 function shuffle(array) {
   return array
     .map((value) => ({ value, sort: Math.random() }))
@@ -268,6 +276,15 @@ wss.on("connection", (ws) => {
         return;
       }
       startRound();
+      return;
+    }
+
+    if (message.type === "start_new_game") {
+      if (player.id !== state.hostId) {
+        return;
+      }
+      resetGame();
+      broadcast({ type: "state", data: publicState() });
       return;
     }
 

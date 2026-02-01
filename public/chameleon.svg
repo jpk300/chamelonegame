@@ -1,50 +1,55 @@
 <svg width="900" height="900" viewBox="0 0 900 900" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#8fce6b"/>
-      <stop offset="55%" stop-color="#4fa95e"/>
-      <stop offset="100%" stop-color="#3c8f52"/>
+    <linearGradient id="body" x1="0.1" y1="0.1" x2="0.9" y2="0.9">
+      <stop offset="0%" stop-color="#9ad36a"/>
+      <stop offset="60%" stop-color="#5fb75e"/>
+      <stop offset="100%" stop-color="#3f8f4f"/>
     </linearGradient>
-    <radialGradient id="skin" cx="0.4" cy="0.3" r="0.8">
-      <stop offset="0%" stop-color="#b8f06a"/>
-      <stop offset="55%" stop-color="#46c46f"/>
-      <stop offset="100%" stop-color="#2f8b4f"/>
-    </radialGradient>
-    <radialGradient id="eye" cx="0.35" cy="0.35" r="0.7">
-      <stop offset="0%" stop-color="#ffe6a6"/>
-      <stop offset="100%" stop-color="#f2b44b"/>
-    </radialGradient>
-    <linearGradient id="branch" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#a5672b"/>
-      <stop offset="60%" stop-color="#7a481f"/>
-      <stop offset="100%" stop-color="#5a3518"/>
+    <linearGradient id="head" x1="0.2" y1="0.1" x2="0.8" y2="0.9">
+      <stop offset="0%" stop-color="#b3e57a"/>
+      <stop offset="70%" stop-color="#4ea65a"/>
+      <stop offset="100%" stop-color="#3a7f4a"/>
     </linearGradient>
-    <radialGradient id="throat" cx="0.5" cy="0.3" r="0.8">
-      <stop offset="0%" stop-color="#ffcf6a"/>
-      <stop offset="55%" stop-color="#f59b42"/>
-      <stop offset="100%" stop-color="#d06f2c"/>
+    <linearGradient id="tail" x1="0.2" y1="0.2" x2="0.8" y2="0.9">
+      <stop offset="0%" stop-color="#ff8a5b"/>
+      <stop offset="60%" stop-color="#e45b45"/>
+      <stop offset="100%" stop-color="#c54a3f"/>
+    </linearGradient>
+    <radialGradient id="belly" cx="0.4" cy="0.2" r="0.8">
+      <stop offset="0%" stop-color="#f7c56e"/>
+      <stop offset="70%" stop-color="#e07a3c"/>
+      <stop offset="100%" stop-color="#c25a2f"/>
     </radialGradient>
   </defs>
-  <rect width="900" height="900" fill="url(#bg)"/>
-  <path d="M530 640C590 628 640 602 686 558C713 532 742 506 770 490C796 476 804 454 792 436C779 415 753 414 729 420C682 431 637 458 586 502C551 531 504 552 456 561C406 572 358 586 326 612C299 635 293 666 313 684C331 699 357 697 384 690C429 676 474 656 530 640Z" fill="url(#branch)"/>
-  <path d="M207 510C195 392 266 284 392 248C525 209 653 267 705 376C753 474 723 598 611 656C512 707 372 713 285 650C235 613 214 567 207 510Z" fill="url(#skin)"/>
-  <path d="M294 435C321 365 393 312 479 298C565 284 647 328 686 398" stroke="#2a7a4a" stroke-width="26" stroke-linecap="round"/>
-  <path d="M254 536C286 589 347 622 423 632C506 642 585 621 637 576" stroke="#2a7a4a" stroke-width="28" stroke-linecap="round"/>
-  <path d="M342 610C348 654 387 693 435 712" stroke="#2a7a4a" stroke-width="22" stroke-linecap="round"/>
-  <path d="M488 702C537 697 586 670 617 634" stroke="#2a7a4a" stroke-width="22" stroke-linecap="round"/>
-  <ellipse cx="595" cy="388" rx="82" ry="78" fill="url(#eye)"/>
-  <circle cx="595" cy="388" r="36" fill="#2b2d42"/>
-  <circle cx="607" cy="372" r="12" fill="#ffffff"/>
-  <path d="M456 458C475 502 526 528 587 520" stroke="#2b2d42" stroke-width="16" stroke-linecap="round"/>
-  <path d="M410 350C428 324 456 303 488 292" stroke="#2a7a4a" stroke-width="18" stroke-linecap="round"/>
-  <path d="M492 284C528 268 569 262 610 266" stroke="#2a7a4a" stroke-width="18" stroke-linecap="round"/>
-  <path d="M330 462C308 498 273 526 230 544" stroke="#2a7a4a" stroke-width="18" stroke-linecap="round"/>
-  <path d="M690 464C720 486 742 517 753 550" stroke="#2a7a4a" stroke-width="18" stroke-linecap="round"/>
-  <path d="M418 540C434 578 474 606 527 617" stroke="url(#throat)" stroke-width="30" stroke-linecap="round"/>
-  <path d="M380 560C390 590 412 616 446 632" stroke="url(#throat)" stroke-width="26" stroke-linecap="round"/>
-  <path d="M524 560C559 570 593 561 627 538" stroke="#2a7a4a" stroke-width="18" stroke-linecap="round"/>
-  <path d="M290 490C258 496 232 514 218 540" stroke="#2a7a4a" stroke-width="16" stroke-linecap="round"/>
-  <path d="M632 332C660 330 687 338 707 354" stroke="#2a7a4a" stroke-width="16" stroke-linecap="round"/>
-  <path d="M356 416C386 385 423 366 466 360" stroke="#5ed784" stroke-width="14" stroke-linecap="round"/>
-  <path d="M468 410C512 400 553 402 595 420" stroke="#5ed784" stroke-width="14" stroke-linecap="round"/>
+
+  <path
+    d="M258 585C200 520 198 430 252 350C320 250 458 218 590 260C690 292 754 380 744 470C736 544 690 612 620 646C542 684 438 684 356 642C317 622 284 606 258 585Z"
+    fill="url(#body)"
+  />
+  <path
+    d="M434 620C470 664 524 692 592 700C664 710 726 694 770 664C756 632 730 602 688 576C612 530 556 498 472 524C438 536 420 566 434 620Z"
+    fill="url(#tail)"
+  />
+  <path
+    d="M346 396C382 320 454 282 548 282C626 282 686 318 704 370C720 416 694 470 640 494C568 528 470 520 404 478C360 450 336 426 346 396Z"
+    fill="url(#head)"
+  />
+  <path
+    d="M394 518C418 570 468 604 528 616C590 628 648 614 690 584"
+    stroke="url(#belly)"
+    stroke-width="28"
+    stroke-linecap="round"
+  />
+  <path
+    d="M470 578C514 592 556 590 600 574"
+    stroke="#2f6f44"
+    stroke-width="18"
+    stroke-linecap="round"
+  />
+  <ellipse cx="612" cy="364" rx="72" ry="70" fill="#ffffff"/>
+  <circle cx="612" cy="364" r="30" fill="#2b2d42"/>
+  <circle cx="624" cy="346" r="10" fill="#ffffff"/>
+  <path d="M522 434C546 462 586 474 636 468" stroke="#2b2d42" stroke-width="14" stroke-linecap="round"/>
+  <path d="M420 456C382 488 336 510 288 522" stroke="#2f6f44" stroke-width="18" stroke-linecap="round"/>
+  <path d="M680 392C704 398 726 410 744 428" stroke="#2f6f44" stroke-width="16" stroke-linecap="round"/>
 </svg>

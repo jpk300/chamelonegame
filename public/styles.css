@@ -77,6 +77,12 @@ h1 {
   align-self: flex-start;
 }
 
+.status-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 #timer-text {
   font-weight: 700;
   color: #ff6f61;

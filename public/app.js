@@ -11,6 +11,7 @@ const nameInput = document.getElementById("name-input");
 const phaseText = document.getElementById("phase-text");
 const timerText = document.getElementById("timer-text");
 const startButton = document.getElementById("start-button");
+const resetButton = document.getElementById("reset-button");
 const hostText = document.getElementById("host-text");
 const categorySelect = document.getElementById("category-select");
 const secretWordEl = document.getElementById("secret-word");
@@ -231,6 +232,7 @@ function updateLobbyControls(state) {
   const isRoundActive = state.phase === "clue" || state.phase === "vote" || state.phase === "guess";
 
   startButton.disabled = !canManage || isRoundActive;
+  resetButton.disabled = !canManage;
   categorySelect.disabled = !canManage || isRoundActive;
 
   categorySelect.innerHTML = "";
@@ -255,6 +257,11 @@ function updateSecret(word) {
 
 function handleState(state) {
   currentState = state;
+  if (state.phase === "lobby" && !state.lastResult) {
+    secretWord = null;
+    isChameleon = false;
+    secretWordEl.textContent = "Join to receive a word.";
+  }
   renderPlayers(state.players);
   renderClues(state.players);
   updatePhase(state);
@@ -270,6 +277,10 @@ joinForm.addEventListener("submit", (event) => {
 
 startButton.addEventListener("click", () => {
   sendMessage({ type: "start_round" });
+});
+
+resetButton.addEventListener("click", () => {
+  sendMessage({ type: "start_new_game" });
 });
 
 categorySelect.addEventListener("change", () => {
