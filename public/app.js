@@ -16,6 +16,7 @@ const startButton = document.getElementById("start-button");
 const resetButton = document.getElementById("reset-button");
 const leaveButton = document.getElementById("leave-button");
 const hostText = document.getElementById("host-text");
+const categoryDisplay = document.getElementById("category-display");
 const categoryLabel = document.querySelector('label[for="category-select"]');
 const categorySelect = document.getElementById("category-select");
 const secretWordEl = document.getElementById("secret-word");
@@ -241,6 +242,8 @@ function updateLobbyControls(state) {
   const hostName =
     state.players.find((player) => player.id === state.hostId)?.name || "Waiting for host...";
   hostText.textContent = state.hostId ? `Host: ${hostName}` : "Host: waiting for players...";
+  const categoryName = state.selectedCategory || "Waiting for host selection...";
+  categoryDisplay.textContent = `Category: ${categoryName}`;
 
   const canManage = playerId && playerId === state.hostId;
   const isRoundActive = state.phase === "clue" || state.phase === "vote" || state.phase === "guess";

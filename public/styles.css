@@ -226,6 +226,12 @@ ul {
   color: #6b4f9b;
 }
 
+#category-display {
+  margin: 0;
+  font-weight: 600;
+  color: #2b7a78;
+}
+
 #clue-panel,
 #vote-panel,
 #guess-panel,
