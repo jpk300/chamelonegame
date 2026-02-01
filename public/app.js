@@ -12,6 +12,7 @@ const phaseText = document.getElementById("phase-text");
 const timerText = document.getElementById("timer-text");
 const startButton = document.getElementById("start-button");
 const resetButton = document.getElementById("reset-button");
+const leaveButton = document.getElementById("leave-button");
 const hostText = document.getElementById("host-text");
 const categorySelect = document.getElementById("category-select");
 const secretWordEl = document.getElementById("secret-word");
@@ -31,6 +32,7 @@ const resultsOutput = document.getElementById("results-output");
 const voteRecapPanel = document.getElementById("vote-recap-panel");
 const voteRecapList = document.getElementById("vote-recap-list");
 const playersList = document.getElementById("players-list");
+const noticeText = document.getElementById("notice-text");
 
 function sendMessage(payload) {
   ws.send(JSON.stringify(payload));
@@ -230,10 +232,12 @@ function updateLobbyControls(state) {
 
   const canManage = playerId && playerId === state.hostId;
   const isRoundActive = state.phase === "clue" || state.phase === "vote" || state.phase === "guess";
+  const hasEnoughPlayers = state.players.length >= 3;
 
-  startButton.disabled = !canManage || isRoundActive;
+  startButton.disabled = !canManage || isRoundActive || !hasEnoughPlayers;
   resetButton.disabled = !canManage;
   categorySelect.disabled = !canManage || isRoundActive;
+  leaveButton.disabled = !playerId;
 
   categorySelect.innerHTML = "";
   (state.categories || []).forEach((category) => {
@@ -245,6 +249,10 @@ function updateLobbyControls(state) {
   if (state.selectedCategory) {
     categorySelect.value = state.selectedCategory;
   }
+}
+
+function showNotice(message) {
+  noticeText.textContent = message || "";
 }
 
 function updateSecret(word) {
@@ -283,6 +291,13 @@ resetButton.addEventListener("click", () => {
   sendMessage({ type: "start_new_game" });
 });
 
+leaveButton.addEventListener("click", () => {
+  sendMessage({ type: "leave" });
+  leaveButton.disabled = true;
+  showNotice("You left the game. Refresh to join again.");
+  ws.close();
+});
+
 categorySelect.addEventListener("change", () => {
   sendMessage({ type: "select_category", category: categorySelect.value });
 });
@@ -319,6 +334,10 @@ ws.addEventListener("message", (event) => {
 
   if (message.type === "error") {
     alert(message.message);
+  }
+
+  if (message.type === "notice") {
+    showNotice(message.message);
   }
 });
 

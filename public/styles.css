@@ -83,6 +83,25 @@ h1 {
   gap: 10px;
 }
 
+.secondary-button {
+  background: #ffe49c;
+  color: #3d1d2c;
+}
+
+.secondary-button:hover {
+  background: #ffd56a;
+}
+
+#notice-text {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: #fff2cf;
+  color: #6b4f9b;
+  font-weight: 600;
+  min-height: 20px;
+}
+
 #timer-text {
   font-weight: 700;
   color: #ff6f61;

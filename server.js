@@ -102,6 +102,64 @@ function resetGame() {
   }
 }
 
+function removePlayer(playerId) {
+  const leavingPlayer = players.get(playerId);
+  if (!leavingPlayer) return null;
+  players.delete(playerId);
+
+  if (state.hostId === playerId) {
+    state.hostId = players.keys().next().value || null;
+  }
+
+  delete state.clues[playerId];
+  delete state.votes[playerId];
+
+  for (const voterId of Object.keys(state.votes)) {
+    const targetId = state.votes[voterId];
+    if (!players.has(voterId) || !players.has(targetId)) {
+      delete state.votes[voterId];
+    }
+  }
+
+  const activeRound = state.phase === "clue" || state.phase === "vote" || state.phase === "guess";
+  if (activeRound && (players.size < 3 || state.chameleonId === playerId)) {
+    resetRoundData();
+    state.phase = "lobby";
+    return leavingPlayer;
+  }
+
+  if (state.phase === "clue") {
+    const index = state.clueOrder.indexOf(playerId);
+    if (index !== -1) {
+      state.clueOrder.splice(index, 1);
+      if (index <= state.clueIndex && state.clueIndex > 0) {
+        state.clueIndex -= 1;
+      }
+    }
+    if (state.activeCluePlayerId === playerId) {
+      if (state.clueTimeout) {
+        clearTimeout(state.clueTimeout);
+        state.clueTimeout = null;
+      }
+      state.clues[playerId] = state.clues[playerId] || "Left the game";
+      state.clueIndex += 1;
+      startNextClueTurn();
+    }
+  }
+
+  if (state.phase === "vote" && Object.keys(state.votes).length === players.size - 1) {
+    finishVoting();
+  }
+
+  if (players.size === 0) {
+    resetRoundData();
+    state.phase = "lobby";
+    state.hostId = null;
+  }
+
+  return leavingPlayer;
+}
+
 function shuffle(array) {
   return array
     .map((value) => ({ value, sort: Math.random() }))
@@ -288,6 +346,19 @@ wss.on("connection", (ws) => {
       return;
     }
 
+    if (message.type === "leave") {
+      const leavingPlayer = removePlayer(playerId);
+      if (leavingPlayer) {
+        broadcast({
+          type: "notice",
+          message: `${leavingPlayer.name || "A player"} left the game.`
+        });
+        broadcast({ type: "state", data: publicState() });
+      }
+      ws.close();
+      return;
+    }
+
     if (message.type === "select_category") {
       if (player.id !== state.hostId) return;
       if (state.phase === "clue" || state.phase === "vote" || state.phase === "guess") {
@@ -327,34 +398,14 @@ wss.on("connection", (ws) => {
   });
 
   ws.on("close", () => {
-    players.delete(playerId);
-    if (state.hostId === playerId) {
-      state.hostId = players.keys().next().value || null;
+    const leavingPlayer = removePlayer(playerId);
+    if (leavingPlayer) {
+      broadcast({
+        type: "notice",
+        message: `${leavingPlayer.name || "A player"} left the game.`
+      });
+      broadcast({ type: "state", data: publicState() });
     }
-    if (state.phase === "clue") {
-      const index = state.clueOrder.indexOf(playerId);
-      if (index !== -1) {
-        state.clueOrder.splice(index, 1);
-        if (index <= state.clueIndex && state.clueIndex > 0) {
-          state.clueIndex -= 1;
-        }
-      }
-      if (state.activeCluePlayerId === playerId) {
-        if (state.clueTimeout) {
-          clearTimeout(state.clueTimeout);
-          state.clueTimeout = null;
-        }
-        state.clues[playerId] = state.clues[playerId] || "Left the game";
-        state.clueIndex += 1;
-        startNextClueTurn();
-      }
-    }
-    if (players.size === 0) {
-      resetRoundData();
-      state.phase = "lobby";
-      state.hostId = null;
-    }
-    broadcast({ type: "state", data: publicState() });
   });
 });
 
