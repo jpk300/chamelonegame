@@ -18,7 +18,7 @@ body::before {
   content: "";
   position: fixed;
   inset: 0;
-  background-image: url("chameleon.svg");
+  background-image: url("https://chameleonbeach.com/portals/0/Images/Marketing1.png");
   background-repeat: no-repeat;
   background-position: right 6% top 12%;
   background-size: min(520px, 70vw);
