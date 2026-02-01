@@ -28,6 +28,8 @@ const WORDS = [
   "marshmallow"
 ];
 
+const CLUE_DURATION_MS = 12000;
+
 const state = {
   phase: "lobby",
   secretWord: null,
@@ -35,7 +37,11 @@ const state = {
   clues: {},
   votes: {},
   timerEndsAt: null,
-  lastResult: null
+  lastResult: null,
+  clueOrder: [],
+  clueIndex: 0,
+  activeCluePlayerId: null,
+  clueTimeout: null
 };
 
 const players = new Map();
@@ -60,6 +66,7 @@ function publicState() {
   return {
     phase: state.phase,
     timerEndsAt: state.timerEndsAt,
+    activeCluePlayerId: state.activeCluePlayerId,
     players: Array.from(players.values()).map((player) => ({
       id: player.id,
       name: player.name,
@@ -77,20 +84,62 @@ function resetRoundData() {
   state.votes = {};
   state.timerEndsAt = null;
   state.lastResult = null;
+  state.clueOrder = [];
+  state.clueIndex = 0;
+  state.activeCluePlayerId = null;
+  if (state.clueTimeout) {
+    clearTimeout(state.clueTimeout);
+    state.clueTimeout = null;
+  }
+}
+
+function shuffle(array) {
+  return array
+    .map((value) => ({ value, sort: Math.random() }))
+    .sort((a, b) => a.sort - b.sort)
+    .map(({ value }) => value);
+}
+
+function startVotePhase() {
+  state.phase = "vote";
+  state.timerEndsAt = null;
+  state.activeCluePlayerId = null;
+  if (state.clueTimeout) {
+    clearTimeout(state.clueTimeout);
+    state.clueTimeout = null;
+  }
+  broadcast({ type: "state", data: publicState() });
+}
+
+function startNextClueTurn() {
+  if (state.clueIndex >= state.clueOrder.length) {
+    startVotePhase();
+    return;
+  }
+
+  state.activeCluePlayerId = state.clueOrder[state.clueIndex];
+  state.timerEndsAt = Date.now() + CLUE_DURATION_MS;
+  broadcast({ type: "state", data: publicState() });
+
+  if (state.clueTimeout) {
+    clearTimeout(state.clueTimeout);
+  }
+
+  state.clueTimeout = setTimeout(() => {
+    if (state.phase !== "clue") return;
+    if (!state.clues[state.activeCluePlayerId]) {
+      state.clues[state.activeCluePlayerId] = "No hint";
+    }
+    state.clueIndex += 1;
+    startNextClueTurn();
+  }, CLUE_DURATION_MS);
 }
 
 function startCluePhase() {
   state.phase = "clue";
-  state.timerEndsAt = Date.now() + 7000;
-  broadcast({ type: "state", data: publicState() });
-
-  setTimeout(() => {
-    if (state.phase === "clue") {
-      state.phase = "vote";
-      state.timerEndsAt = null;
-      broadcast({ type: "state", data: publicState() });
-    }
-  }, 7000);
+  state.clueOrder = shuffle(Array.from(players.keys()));
+  state.clueIndex = 0;
+  startNextClueTurn();
 }
 
 function startRound() {
@@ -193,8 +242,11 @@ wss.on("connection", (ws) => {
     }
 
     if (message.type === "submit_clue" && state.phase === "clue") {
-      state.clues[player.id] = message.clue?.trim() || "";
-      broadcast({ type: "state", data: publicState() });
+      if (player.id !== state.activeCluePlayerId) return;
+      if (state.clues[player.id]) return;
+      state.clues[player.id] = message.clue?.trim() || "No hint";
+      state.clueIndex += 1;
+      startNextClueTurn();
       return;
     }
 
@@ -217,6 +269,24 @@ wss.on("connection", (ws) => {
 
   ws.on("close", () => {
     players.delete(playerId);
+    if (state.phase === "clue") {
+      const index = state.clueOrder.indexOf(playerId);
+      if (index !== -1) {
+        state.clueOrder.splice(index, 1);
+        if (index <= state.clueIndex && state.clueIndex > 0) {
+          state.clueIndex -= 1;
+        }
+      }
+      if (state.activeCluePlayerId === playerId) {
+        if (state.clueTimeout) {
+          clearTimeout(state.clueTimeout);
+          state.clueTimeout = null;
+        }
+        state.clues[playerId] = state.clues[playerId] || "Left the game";
+        state.clueIndex += 1;
+        startNextClueTurn();
+      }
+    }
     if (players.size === 0) {
       resetRoundData();
       state.phase = "lobby";

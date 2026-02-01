@@ -13,6 +13,7 @@ const timerText = document.getElementById("timer-text");
 const startButton = document.getElementById("start-button");
 const secretWordEl = document.getElementById("secret-word");
 const cluePanel = document.getElementById("clue-panel");
+const clueTurnText = document.getElementById("clue-turn-text");
 const clueForm = document.getElementById("clue-form");
 const clueInput = document.getElementById("clue-input");
 const cluesList = document.getElementById("clues-list");
@@ -85,10 +86,14 @@ function renderResults(result) {
   `;
 }
 
+function getPlayerName(players, targetId) {
+  return players.find((player) => player.id === targetId)?.name || "Player";
+}
+
 function updatePhase(state) {
   const phaseMap = {
     lobby: "Waiting for players...",
-    clue: "Share your clue!",
+    clue: "Share your hint!",
     vote: "Vote for the chameleon.",
     guess: "Chameleon guesses the word.",
     reveal: "Round over."
@@ -110,8 +115,19 @@ function updatePhase(state) {
 
   if (state.phase === "clue") {
     const remaining = Math.max(0, Math.ceil((state.timerEndsAt - Date.now()) / 1000));
-    timerText.textContent = `Time left: ${remaining}s`;
+    const activeName = getPlayerName(state.players, state.activeCluePlayerId);
+    const isYourTurn = state.activeCluePlayerId === playerId;
+    const hasSubmitted = Boolean(state.players.find((player) => player.id === playerId)?.clue);
+    timerText.textContent = `${activeName}'s turn: ${remaining}s left`;
+    clueTurnText.textContent = isYourTurn
+      ? "It's your turn! Enter a one-word hint."
+      : `Waiting for ${activeName} to share a hint.`;
+    clueInput.disabled = !isYourTurn || hasSubmitted;
+    clueForm.querySelector("button").disabled = !isYourTurn || hasSubmitted;
   } else {
+    clueTurnText.textContent = "";
+    clueInput.disabled = false;
+    clueForm.querySelector("button").disabled = false;
     timerText.textContent = "";
   }
 

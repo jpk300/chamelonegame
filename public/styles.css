@@ -1,12 +1,15 @@
+@import url("https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700&family=Nunito:wght@400;700&display=swap");
+
 * {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  font-family: "Segoe UI", sans-serif;
-  background: #10121a;
-  color: #f7f7f8;
+  font-family: "Nunito", "Segoe UI", sans-serif;
+  background: linear-gradient(135deg, #ffe6a7 0%, #ffd6e7 45%, #c8f7ff 100%);
+  color: #332f2f;
+  min-height: 100vh;
 }
 
 .app {
@@ -25,19 +28,22 @@ header {
 
 h1 {
   margin-bottom: 4px;
-  font-size: 2.4rem;
+  font-size: 2.6rem;
+  font-family: "Baloo 2", "Nunito", sans-serif;
+  color: #ff6f61;
 }
 
 .subtitle {
-  color: #a3a6b4;
+  color: #6b4f9b;
   margin-top: 0;
 }
 
 .panel {
-  background: #1c2030;
+  background: #ffffff;
   padding: 20px;
   border-radius: 16px;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+  border: 2px solid #ffe49c;
+  box-shadow: 0 12px 24px rgba(255, 145, 128, 0.18);
 }
 
 .panel h2 {
@@ -54,6 +60,18 @@ h1 {
   align-self: flex-start;
 }
 
+#timer-text {
+  font-weight: 700;
+  color: #ff6f61;
+  margin: 4px 0 0;
+}
+
+#clue-turn-text {
+  margin: 8px 0 0;
+  color: #2b7a78;
+  font-weight: 700;
+}
+
 form {
   display: flex;
   flex-direction: column;
@@ -63,23 +81,34 @@ form {
 input {
   padding: 10px 12px;
   border-radius: 10px;
-  border: 1px solid #3c4156;
-  background: #0f111a;
-  color: #f7f7f8;
+  border: 2px solid #ffd08a;
+  background: #fff7e8;
+  color: #332f2f;
+}
+
+input:disabled {
+  background: #f4f1f1;
+  border-color: #d7d0d0;
+  color: #8c7b7b;
 }
 
 button {
   padding: 10px 16px;
   border: none;
   border-radius: 10px;
-  background: #6d76ff;
-  color: #ffffff;
+  background: #ff8fab;
+  color: #3d1d2c;
   font-weight: 600;
   cursor: pointer;
 }
 
 button:hover {
-  background: #535dea;
+  background: #ff6f91;
+}
+
+button:disabled {
+  background: #f3c2cf;
+  cursor: not-allowed;
 }
 
 #vote-options {
