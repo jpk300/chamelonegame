@@ -16,6 +16,7 @@ const startButton = document.getElementById("start-button");
 const resetButton = document.getElementById("reset-button");
 const leaveButton = document.getElementById("leave-button");
 const hostText = document.getElementById("host-text");
+const categoryLabel = document.querySelector('label[for="category-select"]');
 const categorySelect = document.getElementById("category-select");
 const secretWordEl = document.getElementById("secret-word");
 const cluePanel = document.getElementById("clue-panel");
@@ -244,6 +245,11 @@ function updateLobbyControls(state) {
   const canManage = playerId && playerId === state.hostId;
   const isRoundActive = state.phase === "clue" || state.phase === "vote" || state.phase === "guess";
   const hasEnoughPlayers = state.players.length >= 3;
+
+  startButton.style.display = canManage ? "inline-flex" : "none";
+  resetButton.style.display = canManage ? "inline-flex" : "none";
+  categorySelect.style.display = canManage ? "block" : "none";
+  categoryLabel.style.display = canManage ? "block" : "none";
 
   startButton.disabled = !canManage || isRoundActive || !hasEnoughPlayers;
   resetButton.disabled = !canManage;
