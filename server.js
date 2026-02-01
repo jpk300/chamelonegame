@@ -255,7 +255,7 @@ const CATEGORIES = {
     "boxing",
     "karate",
     "judo",
-    "table tennis",
+    "pickleball",
     "badminton",
     "track",
     "gymnastics",
