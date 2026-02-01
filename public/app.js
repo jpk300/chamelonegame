@@ -175,11 +175,11 @@ function updatePhase(state) {
 
   const showClue = state.phase === "clue";
   const showVote = state.phase === "vote";
-  const showGuess = state.phase === "guess" && isChameleon;
+  const showGuess = state.phase === "guess";
 
   cluePanel.style.display = showClue ? "block" : "none";
   votePanel.style.display = showVote ? "block" : "none";
-  guessPanel.style.display = state.phase === "guess" ? "block" : "none";
+  guessPanel.style.display = showGuess ? "block" : "none";
   resultsPanel.style.display = state.phase === "reveal" ? "block" : "none";
 
   if (showVote) {
@@ -208,7 +208,15 @@ function updatePhase(state) {
   }
 
   if (showGuess) {
-    guessInput.placeholder = "Secret word";
+    const canGuess = isChameleon;
+    guessInput.disabled = !canGuess;
+    guessForm.querySelector("button").disabled = !canGuess;
+    guessInput.placeholder = canGuess
+      ? "Secret word"
+      : "Only the chameleon can guess the secret word";
+  } else {
+    guessInput.disabled = false;
+    guessForm.querySelector("button").disabled = false;
   }
 
   renderResults(state.lastResult);
