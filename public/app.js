@@ -117,7 +117,7 @@ function renderResults(result) {
   resultsOutput.innerHTML = `
     <p>${outcomeText}</p>
     <p>Secret word: <strong>${result.secretWord}</strong></p>
-    <p>Chameleon: <strong>${chameleonName}</strong></p>
+    <p>The chameleon was: <strong>${chameleonName}</strong></p>
     ${unanimousDetail}
     ${result.guess ? `<p>Chameleon guess: <strong>${result.guess}</strong></p>` : ""}
     ${winnersText}

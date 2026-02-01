@@ -1,4 +1,4 @@
-# Chameleon Game
+# Kayser Chameleon Game
 
 A lightweight local multiplayer party game inspired by the Chameleon. One player is secretly the chameleon and does not see the word. Everyone gives a quick clue, votes, and the chameleon can guess the word if caught.
 
