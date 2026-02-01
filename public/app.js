@@ -21,6 +21,7 @@ const clueInput = document.getElementById("clue-input");
 const cluesList = document.getElementById("clues-list");
 const votePanel = document.getElementById("vote-panel");
 const voteOptions = document.getElementById("vote-options");
+const voteStatus = document.getElementById("vote-status");
 const guessPanel = document.getElementById("guess-panel");
 const guessForm = document.getElementById("guess-form");
 const guessInput = document.getElementById("guess-input");
@@ -39,7 +40,9 @@ function renderPlayers(players) {
   players.forEach((player) => {
     const li = document.createElement("li");
     const label = player.id === playerId ? `${player.name} (you)` : player.name;
-    li.textContent = label || "Player";
+    const points = player.score ?? 0;
+    const pointLabel = points === 1 ? "point" : "points";
+    li.textContent = `${label || "Player"} — ${points} ${pointLabel}`;
     playersList.appendChild(li);
   });
 }
@@ -54,15 +57,24 @@ function renderClues(players) {
   });
 }
 
-function renderVotes(players) {
+function renderVotes(state) {
   voteOptions.innerHTML = "";
-  players.forEach((player) => {
+  const yourVote = state.players.find((player) => player.id === playerId)?.vote;
+  const hasVoted = Boolean(yourVote);
+  state.players.forEach((player) => {
     if (player.id === playerId) return;
     const button = document.createElement("button");
     button.type = "button";
     button.textContent = `Vote ${player.name || "Player"}`;
+    if (hasVoted) {
+      button.disabled = true;
+    }
+    if (player.id === yourVote) {
+      button.classList.add("selected-vote");
+    }
     button.addEventListener("click", () => {
       sendMessage({ type: "submit_vote", targetId: player.id });
+      voteStatus.textContent = "Vote submitted. Waiting for everyone else.";
     });
     voteOptions.appendChild(button);
   });
@@ -80,13 +92,29 @@ function renderResults(result) {
       ? "The team wins! The chameleon guessed wrong."
       : result.outcome === "chameleon-wins"
       ? "The chameleon wins by guessing the word!"
-      : "The chameleon escaped!";
+      : result.voteUnanimous
+      ? "The chameleon escaped the unanimous vote!"
+      : "The chameleon escaped because the vote was not unanimous.";
+
+  const winners =
+    result.roundWinners?.map((winnerId) => getPlayerName(currentState.players, winnerId)) || [];
+  const winnersText =
+    winners.length > 0 ? `<p>Round winners: <strong>${winners.join(", ")}</strong></p>` : "";
+  const unanimousDetail =
+    result.outcome === "chameleon-escaped" && result.voteUnanimous && result.suspectedId
+      ? `<p>Unanimous vote: <strong>${getPlayerName(
+          currentState.players,
+          result.suspectedId
+        )}</strong></p>`
+      : "";
 
   resultsOutput.innerHTML = `
     <p>${outcomeText}</p>
     <p>Secret word: <strong>${result.secretWord}</strong></p>
     <p>Chameleon: <strong>${chameleonName}</strong></p>
+    ${unanimousDetail}
     ${result.guess ? `<p>Chameleon guess: <strong>${result.guess}</strong></p>` : ""}
+    ${winnersText}
   `;
 }
 
@@ -115,6 +143,15 @@ function getPlayerName(players, targetId) {
   return players.find((player) => player.id === targetId)?.name || "Player";
 }
 
+function renderVoteStatus(state) {
+  const yourVote = state.players.find((player) => player.id === playerId)?.vote;
+  if (yourVote) {
+    voteStatus.textContent = `Vote received: ${getPlayerName(state.players, yourVote)}.`;
+  } else {
+    voteStatus.textContent = "Choose a player. Unanimous votes are required.";
+  }
+}
+
 function updatePhase(state) {
   const phaseMap = {
     lobby: "Waiting for players...",
@@ -135,7 +172,10 @@ function updatePhase(state) {
   resultsPanel.style.display = state.phase === "reveal" ? "block" : "none";
 
   if (showVote) {
-    renderVotes(state.players);
+    renderVotes(state);
+    renderVoteStatus(state);
+  } else {
+    voteStatus.textContent = "";
   }
 
   if (state.phase === "clue") {

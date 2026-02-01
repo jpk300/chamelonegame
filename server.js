@@ -70,6 +70,7 @@ function publicState() {
     players: Array.from(players.values()).map((player) => ({
       id: player.id,
       name: player.name,
+      score: player.score,
       clue: state.clues[player.id] || null,
       vote: state.votes[player.id] || null
     })),
@@ -98,6 +99,15 @@ function shuffle(array) {
     .map((value) => ({ value, sort: Math.random() }))
     .sort((a, b) => a.sort - b.sort)
     .map(({ value }) => value);
+}
+
+function awardPoints(winnerIds) {
+  winnerIds.forEach((id) => {
+    const winner = players.get(id);
+    if (winner) {
+      winner.score += 1;
+    }
+  });
 }
 
 function startVotePhase() {
@@ -172,16 +182,11 @@ function finishVoting() {
     return;
   }
 
-  const tally = votes.reduce((counts, vote) => {
-    counts[vote] = (counts[vote] || 0) + 1;
-    return counts;
-  }, {});
-  const majorityNeeded = Math.floor(players.size / 2) + 1;
-  const [suspectedId, topVotes = 0] =
-    Object.entries(tally).sort(([, countA], [, countB]) => countB - countA)[0] || [];
-  const hasMajority = topVotes >= majorityNeeded;
+  const uniqueVotes = new Set(votes);
+  const voteUnanimous = uniqueVotes.size === 1;
+  const suspectedId = voteUnanimous ? votes[0] : null;
 
-if (hasMajority && suspectedId === state.chameleonId) {
+  if (voteUnanimous && suspectedId === state.chameleonId) {
     state.phase = "guess";
     broadcast({
       type: "state",
@@ -193,24 +198,32 @@ if (hasMajority && suspectedId === state.chameleonId) {
     return;
   }
 
+  awardPoints([state.chameleonId]);
   state.phase = "reveal";
   state.lastResult = {
     outcome: "chameleon-escaped",
     secretWord: state.secretWord,
     chameleonId: state.chameleonId,
-    majority: hasMajority
+    voteUnanimous,
+    suspectedId,
+    roundWinners: [state.chameleonId]
   };
   broadcast({ type: "state", data: publicState() });
 }
 
 function handleGuess(guess) {
   const correct = guess.trim().toLowerCase() === state.secretWord.toLowerCase();
+  const winners = correct
+    ? [state.chameleonId]
+    : Array.from(players.keys()).filter((id) => id !== state.chameleonId);
+  awardPoints(winners);
   state.phase = "reveal";
   state.lastResult = {
     outcome: correct ? "chameleon-wins" : "team-wins",
     secretWord: state.secretWord,
     chameleonId: state.chameleonId,
-    majority: true,
+    voteUnanimous: true,
+    roundWinners: winners,
     guess
   };
   broadcast({ type: "state", data: publicState() });
@@ -218,7 +231,7 @@ function handleGuess(guess) {
 
 wss.on("connection", (ws) => {
   const playerId = `player-${Math.random().toString(36).slice(2, 10)}`;
-  const player = { id: playerId, name: "", ws };
+  const player = { id: playerId, name: "", ws, score: 0 };
   players.set(playerId, player);
   if (!state.hostId) {
     state.hostId = playerId;
