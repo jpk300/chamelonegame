@@ -4,8 +4,10 @@ let playerId = null;
 let currentState = null;
 let secretWord = null;
 let isChameleon = false;
+let hasJoined = false;
 
-const joinPanel = document.getElementById("join-panel");
+const joinScreen = document.getElementById("join-screen");
+const gameScreen = document.getElementById("game-screen");
 const joinForm = document.getElementById("join-form");
 const nameInput = document.getElementById("name-input");
 const phaseText = document.getElementById("phase-text");
@@ -33,6 +35,12 @@ const voteRecapPanel = document.getElementById("vote-recap-panel");
 const voteRecapList = document.getElementById("vote-recap-list");
 const playersList = document.getElementById("players-list");
 const noticeText = document.getElementById("notice-text");
+
+function setScreen(screen) {
+  const showJoin = screen === "join";
+  joinScreen.classList.toggle("active", showJoin);
+  gameScreen.classList.toggle("active", !showJoin);
+}
 
 function sendMessage(payload) {
   ws.send(JSON.stringify(payload));
@@ -268,6 +276,9 @@ function updateSecret(word) {
 
 function handleState(state) {
   currentState = state;
+  const you = state.players.find((player) => player.id === playerId);
+  hasJoined = hasJoined || Boolean(you?.name);
+  setScreen(hasJoined ? "game" : "join");
   if (state.phase === "lobby" && !state.lastResult) {
     secretWord = null;
     isChameleon = false;
@@ -283,7 +294,8 @@ function handleState(state) {
 joinForm.addEventListener("submit", (event) => {
   event.preventDefault();
   sendMessage({ type: "join", name: nameInput.value });
-  joinPanel.style.display = "none";
+  hasJoined = true;
+  setScreen("game");
 });
 
 startButton.addEventListener("click", () => {

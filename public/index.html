@@ -13,80 +13,84 @@
         <p class="subtitle">Family-friendly bluffing fun for everyone</p>
       </header>
 
-      <section class="panel" id="join-panel">
-        <h2>Join the table</h2>
-        <form id="join-form">
-          <label for="name-input">Your name</label>
-          <input id="name-input" type="text" placeholder="e.g. Taylor" required />
-          <button type="submit">Join Game</button>
-        </form>
+      <section class="screen active" id="join-screen">
+        <section class="panel" id="join-panel">
+          <h2>Join the table</h2>
+          <form id="join-form">
+            <label for="name-input">Your name</label>
+            <input id="name-input" type="text" placeholder="e.g. Taylor" required />
+            <button type="submit">Join Game</button>
+          </form>
+        </section>
       </section>
 
-      <section class="panel" id="status-panel">
-        <div>
-          <h2>Round status</h2>
-          <p id="phase-text">Waiting for players...</p>
-          <p id="timer-text"></p>
-        </div>
-        <div class="category-controls">
-          <p id="host-text"></p>
-          <label for="category-select">Category (host picks)</label>
-          <select id="category-select"></select>
-        </div>
-        <div class="status-actions">
-          <button id="start-button" type="button">Start Round</button>
-          <button id="reset-button" type="button">Start New Game</button>
-          <button id="leave-button" type="button" class="secondary-button">Leave Game</button>
-        </div>
-        <p id="notice-text" aria-live="polite"></p>
-      </section>
+      <section class="screen" id="game-screen">
+        <section class="panel" id="status-panel">
+          <div>
+            <h2>Round status</h2>
+            <p id="phase-text">Waiting for players...</p>
+            <p id="timer-text"></p>
+          </div>
+          <div class="category-controls">
+            <p id="host-text"></p>
+            <label for="category-select">Category (host picks)</label>
+            <select id="category-select"></select>
+          </div>
+          <div class="status-actions">
+            <button id="start-button" type="button">Start Round</button>
+            <button id="reset-button" type="button">Start New Game</button>
+            <button id="leave-button" type="button" class="secondary-button">Leave Game</button>
+          </div>
+          <p id="notice-text" aria-live="polite"></p>
+        </section>
 
-      <section class="panel" id="secret-panel">
-        <h2>Your secret word</h2>
-        <p id="secret-word">Join to receive a word.</p>
-      </section>
+        <section class="panel" id="secret-panel">
+          <h2>Your secret word</h2>
+          <p id="secret-word">Join to receive a word.</p>
+        </section>
 
-      <section class="panel" id="clue-panel">
-        <h2>Give your hint (30 seconds)</h2>
-        <p id="clue-turn-text"></p>
-        <form id="clue-form">
-          <input id="clue-input" type="text" placeholder="One-word hint" />
-          <button type="submit">Send hint</button>
-        </form>
-      </section>
+        <section class="panel" id="clue-panel">
+          <h2>Give your hint (30 seconds)</h2>
+          <p id="clue-turn-text"></p>
+          <form id="clue-form">
+            <input id="clue-input" type="text" placeholder="One-word hint" />
+            <button type="submit">Send hint</button>
+          </form>
+        </section>
 
-      <section class="panel" id="clues-panel">
-        <h2>Hints</h2>
-        <ul id="clues-list"></ul>
-      </section>
+        <section class="panel" id="clues-panel">
+          <h2>Hints</h2>
+          <ul id="clues-list"></ul>
+        </section>
 
-      <section class="panel" id="vote-panel">
-        <h2>Vote for the chameleon</h2>
-        <p id="vote-status"></p>
-        <div id="vote-options"></div>
-      </section>
+        <section class="panel" id="vote-panel">
+          <h2>Vote for the chameleon</h2>
+          <p id="vote-status"></p>
+          <div id="vote-options"></div>
+        </section>
 
-      <section class="panel" id="guess-panel">
-        <h2>Chameleon guess</h2>
-        <form id="guess-form">
-          <input id="guess-input" type="text" placeholder="Secret word" />
-          <button type="submit">Submit guess</button>
-        </form>
-      </section>
+        <section class="panel" id="guess-panel">
+          <h2>Chameleon guess</h2>
+          <form id="guess-form">
+            <input id="guess-input" type="text" placeholder="Secret word" />
+            <button type="submit">Submit guess</button>
+          </form>
+        </section>
 
-      <section class="panel" id="results-panel">
-        <h2>Round results</h2>
-        <div id="results-output"></div>
-      </section>
+        <section class="panel" id="results-panel">
+          <h2>Round results</h2>
+          <div id="results-output"></div>
+        </section>
 
-      <section class="panel" id="vote-recap-panel">
-        <h2>Vote recap</h2>
-        <ul id="vote-recap-list"></ul>
-      </section>
+        <section class="panel" id="vote-recap-panel">
+          <h2>Vote recap</h2>
+          <ul id="vote-recap-list"></ul>
+        </section>
 
-      <section class="panel" id="players-panel">
-        <h2>Players</h2>
-        <ul id="players-list"></ul>
+        <section class="panel" id="players-panel">
+          <h2>Players</h2>
+          <ul id="players-list"></ul>
+        </section>
       </section>
     </main>
 

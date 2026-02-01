@@ -38,6 +38,25 @@ body::before {
   z-index: 1;
 }
 
+.screen {
+  grid-column: 1 / -1;
+  display: none;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.screen.active {
+  display: grid;
+}
+
+#join-screen {
+  justify-items: center;
+}
+
+#join-screen .panel {
+  width: min(100%, 360px);
+}
+
 header {
   grid-column: 1 / -1;
   text-align: center;
