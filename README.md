@@ -21,5 +21,5 @@ Open `http://localhost:3000` in multiple tabs or on different devices on the sam
 2. Start the round (minimum 3 players).
 3. Everyone but the chameleon sees the secret word.
 4. Players have 30 seconds to submit a clue.
-5. Vote on who the chameleon is.
+5. Everyone but the chameleon votes on who the chameleon is.
 6. If the majority votes for the chameleon and they're correct, the chameleon gets a final guess.

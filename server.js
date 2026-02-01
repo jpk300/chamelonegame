@@ -177,8 +177,9 @@ function startRound() {
 }
 
 function finishVoting() {
-  const votes = Object.values(state.votes);
-  if (votes.length !== players.size) {
+  const eligibleVoterIds = Array.from(players.keys()).filter((id) => id !== state.chameleonId);
+  const votes = eligibleVoterIds.map((id) => state.votes[id]).filter(Boolean);
+  if (votes.length !== eligibleVoterIds.length) {
     return;
   }
 
@@ -292,10 +293,11 @@ wss.on("connection", (ws) => {
 
     if (message.type === "submit_vote" && state.phase === "vote") {
       if (!players.has(message.targetId)) return;
+      if (player.id === state.chameleonId) return;
       state.votes[player.id] = message.targetId;
       broadcast({ type: "state", data: publicState() });
 
-      if (Object.keys(state.votes).length === players.size) {
+      if (Object.keys(state.votes).length === players.size - 1) {
         finishVoting();
       }
       return;

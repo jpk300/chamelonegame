@@ -59,6 +59,12 @@ function renderClues(players) {
 
 function renderVotes(state) {
   voteOptions.innerHTML = "";
+  if (isChameleon) {
+    const message = document.createElement("p");
+    message.textContent = "You are the chameleon and do not vote this round.";
+    voteOptions.appendChild(message);
+    return;
+  }
   const yourVote = state.players.find((player) => player.id === playerId)?.vote;
   const hasVoted = Boolean(yourVote);
   state.players.forEach((player) => {
@@ -119,8 +125,9 @@ function renderResults(result) {
 }
 
 function renderVoteRecap(state) {
-  const allVoted =
-    state.players.length > 0 && state.players.every((player) => Boolean(player.vote));
+  const voteCount = state.players.filter((player) => Boolean(player.vote)).length;
+  const requiredVotes = Math.max(0, state.players.length - 1);
+  const allVoted = state.players.length > 0 && voteCount >= requiredVotes;
 
   if (!allVoted) {
     voteRecapPanel.style.display = "none";
@@ -145,10 +152,14 @@ function getPlayerName(players, targetId) {
 
 function renderVoteStatus(state) {
   const yourVote = state.players.find((player) => player.id === playerId)?.vote;
+  if (isChameleon) {
+    voteStatus.textContent = "You are the chameleon. Wait for the team to vote.";
+    return;
+  }
   if (yourVote) {
     voteStatus.textContent = `Vote received: ${getPlayerName(state.players, yourVote)}.`;
   } else {
-    voteStatus.textContent = "Choose a player. Unanimous votes are required.";
+    voteStatus.textContent = "Choose a player. Only non-chameleons vote, and unanimity is required.";
   }
 }
 
