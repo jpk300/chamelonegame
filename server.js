@@ -23,6 +23,7 @@ const CATEGORIES = {
 };
 
 const CLUE_DURATION_MS = 30000;
+const GUESS_DURATION_MS = 60000;
 
 const state = {
   phase: "lobby",
@@ -36,15 +37,22 @@ const state = {
   clueIndex: 0,
   activeCluePlayerId: null,
   clueTimeout: null,
+  guessTimeout: null,
   hostId: null,
-  selectedCategory: Object.keys(CATEGORIES)[0]
+  selectedCategory: Object.keys(CATEGORIES)[0],
+  lastSecretWord: null
 };
 
 const players = new Map();
 
-function randomWord(category) {
+function randomWord(category, previousWord) {
   const words = CATEGORIES[category] || Object.values(CATEGORIES).flat();
-  return words[Math.floor(Math.random() * words.length)];
+  if (!previousWord || words.length <= 1) {
+    return words[Math.floor(Math.random() * words.length)];
+  }
+  const filtered = words.filter((word) => word !== previousWord);
+  const candidates = filtered.length > 0 ? filtered : words;
+  return candidates[Math.floor(Math.random() * candidates.length)];
 }
 
 function broadcast(payload) {
@@ -91,6 +99,10 @@ function resetRoundData() {
   if (state.clueTimeout) {
     clearTimeout(state.clueTimeout);
     state.clueTimeout = null;
+  }
+  if (state.guessTimeout) {
+    clearTimeout(state.guessTimeout);
+    state.guessTimeout = null;
   }
 }
 
@@ -184,6 +196,10 @@ function startVotePhase() {
     clearTimeout(state.clueTimeout);
     state.clueTimeout = null;
   }
+  if (state.guessTimeout) {
+    clearTimeout(state.guessTimeout);
+    state.guessTimeout = null;
+  }
   broadcast({ type: "state", data: publicState() });
 }
 
@@ -227,8 +243,10 @@ function startRound() {
     return;
   }
 
+  const previousWord = state.lastSecretWord;
   resetRoundData();
-  state.secretWord = randomWord(state.selectedCategory);
+  state.secretWord = randomWord(state.selectedCategory, previousWord);
+  state.lastSecretWord = state.secretWord;
   const playerIds = Array.from(players.keys());
   state.chameleonId = playerIds[Math.floor(Math.random() * playerIds.length)];
 
@@ -240,6 +258,23 @@ function startRound() {
   }
 
   startCluePhase();
+}
+
+function startGuessPhase() {
+  state.phase = "guess";
+  state.timerEndsAt = Date.now() + GUESS_DURATION_MS;
+  broadcast({ type: "state", data: publicState() });
+  sendToPlayer(players.get(state.chameleonId), {
+    type: "guess_prompt"
+  });
+
+  if (state.guessTimeout) {
+    clearTimeout(state.guessTimeout);
+  }
+  state.guessTimeout = setTimeout(() => {
+    if (state.phase !== "guess") return;
+    handleGuess("No guess");
+  }, GUESS_DURATION_MS);
 }
 
 function finishVoting() {
@@ -254,14 +289,7 @@ function finishVoting() {
   const suspectedId = voteUnanimous ? votes[0] : null;
 
   if (voteUnanimous && suspectedId === state.chameleonId) {
-    state.phase = "guess";
-    broadcast({
-      type: "state",
-      data: publicState()
-    });
-    sendToPlayer(players.get(state.chameleonId), {
-      type: "guess_prompt"
-    });
+    startGuessPhase();
     return;
   }
 
@@ -279,6 +307,11 @@ function finishVoting() {
 }
 
 function handleGuess(guess) {
+  if (state.guessTimeout) {
+    clearTimeout(state.guessTimeout);
+    state.guessTimeout = null;
+  }
+  state.timerEndsAt = null;
   const correct = guess.trim().toLowerCase() === state.secretWord.toLowerCase();
   const winners = correct
     ? [state.chameleonId]

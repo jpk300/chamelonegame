@@ -203,6 +203,9 @@ function updatePhase(state) {
       : `Waiting for ${activeName} to share a hint.`;
     clueInput.disabled = !isYourTurn || hasSubmitted;
     clueForm.querySelector("button").disabled = !isYourTurn || hasSubmitted;
+  } else if (showGuess) {
+    const remaining = Math.max(0, Math.ceil((state.timerEndsAt - Date.now()) / 1000));
+    timerText.textContent = `Chameleon guess: ${remaining}s left`;
   } else {
     clueTurnText.textContent = "";
     clueInput.disabled = false;
@@ -342,7 +345,7 @@ ws.addEventListener("message", (event) => {
 });
 
 setInterval(() => {
-  if (currentState?.phase === "clue") {
+  if (currentState?.phase === "clue" || currentState?.phase === "guess") {
     updatePhase(currentState);
   }
 }, 500);
