@@ -14,10 +14,15 @@ const CATEGORIES = {
   "Everyday Objects": ["keyboard", "backpack", "accordion", "bicycle"],
   Nature: ["volcano", "rainbow", "cucumber", "snowflake", "mountain"],
   "Fun & Food": ["pineapple", "marshmallow", "fireworks"],
-  Adventures: ["giraffe", "spaceship", "lighthouse"]
+  Adventures: ["giraffe", "spaceship", "lighthouse"],
+  Animals: ["chameleon", "panda", "dolphin", "kangaroo", "owl"],
+  Hobbies: ["gardening", "painting", "baking", "photography", "knitting"],
+  Games: ["chess", "monopoly", "scrabble", "minecraft", "fortnite"],
+  Movies: ["inception", "coco", "avatar", "frozen", "gladiator"],
+  Sports: ["soccer", "basketball", "tennis", "swimming", "cycling"]
 };
 
-const CLUE_DURATION_MS = 12000;
+const CLUE_DURATION_MS = 30000;
 
 const state = {
   phase: "lobby",
@@ -163,10 +168,20 @@ function startRound() {
 
 function finishVoting() {
   const votes = Object.values(state.votes);
-  const unanimousTarget = votes.length === players.size && votes.every((vote) => vote === votes[0]);
-  const suspectedId = unanimousTarget ? votes[0] : null;
+  if (votes.length !== players.size) {
+    return;
+  }
 
-  if (suspectedId && suspectedId === state.chameleonId) {
+  const tally = votes.reduce((counts, vote) => {
+    counts[vote] = (counts[vote] || 0) + 1;
+    return counts;
+  }, {});
+  const majorityNeeded = Math.floor(players.size / 2) + 1;
+  const [suspectedId, topVotes = 0] =
+    Object.entries(tally).sort(([, countA], [, countB]) => countB - countA)[0] || [];
+  const hasMajority = topVotes >= majorityNeeded;
+
+if (hasMajority && suspectedId === state.chameleonId) {
     state.phase = "guess";
     broadcast({
       type: "state",
@@ -183,7 +198,7 @@ function finishVoting() {
     outcome: "chameleon-escaped",
     secretWord: state.secretWord,
     chameleonId: state.chameleonId,
-    unanimous: Boolean(suspectedId)
+    majority: hasMajority
   };
   broadcast({ type: "state", data: publicState() });
 }
@@ -195,7 +210,7 @@ function handleGuess(guess) {
     outcome: correct ? "chameleon-wins" : "team-wins",
     secretWord: state.secretWord,
     chameleonId: state.chameleonId,
-    unanimous: true,
+    majority: true,
     guess
   };
   broadcast({ type: "state", data: publicState() });

@@ -10,6 +10,21 @@ body {
   background: linear-gradient(135deg, #ffe6a7 0%, #ffd6e7 45%, #c8f7ff 100%);
   color: #332f2f;
   min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: url("chameleon.svg");
+  background-repeat: no-repeat;
+  background-position: right 6% top 12%;
+  background-size: min(520px, 70vw);
+  opacity: 0.22;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .app {
@@ -19,6 +34,8 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 20px;
+  position: relative;
+  z-index: 1;
 }
 
 header {
@@ -156,6 +173,7 @@ ul {
 #clue-panel,
 #vote-panel,
 #guess-panel,
-#results-panel {
+#results-panel,
+#vote-recap-panel {
   display: none;
 }

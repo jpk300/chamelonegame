@@ -26,6 +26,8 @@ const guessForm = document.getElementById("guess-form");
 const guessInput = document.getElementById("guess-input");
 const resultsPanel = document.getElementById("results-panel");
 const resultsOutput = document.getElementById("results-output");
+const voteRecapPanel = document.getElementById("vote-recap-panel");
+const voteRecapList = document.getElementById("vote-recap-list");
 const playersList = document.getElementById("players-list");
 
 function sendMessage(payload) {
@@ -86,6 +88,27 @@ function renderResults(result) {
     <p>Chameleon: <strong>${chameleonName}</strong></p>
     ${result.guess ? `<p>Chameleon guess: <strong>${result.guess}</strong></p>` : ""}
   `;
+}
+
+function renderVoteRecap(state) {
+  const allVoted =
+    state.players.length > 0 && state.players.every((player) => Boolean(player.vote));
+
+  if (!allVoted) {
+    voteRecapPanel.style.display = "none";
+    voteRecapList.innerHTML = "";
+    return;
+  }
+
+  voteRecapPanel.style.display = "block";
+  voteRecapList.innerHTML = "";
+  state.players.forEach((player) => {
+    const li = document.createElement("li");
+    const voterName = player.id === playerId ? `${player.name || "Player"} (you)` : player.name;
+    const targetName = getPlayerName(state.players, player.vote);
+    li.textContent = `${voterName || "Player"} → ${targetName}`;
+    voteRecapList.appendChild(li);
+  });
 }
 
 function getPlayerName(players, targetId) {
@@ -177,6 +200,7 @@ function handleState(state) {
   renderClues(state.players);
   updatePhase(state);
   updateLobbyControls(state);
+  renderVoteRecap(state);
 }
 
 joinForm.addEventListener("submit", (event) => {
