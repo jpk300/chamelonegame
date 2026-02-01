@@ -10,23 +10,12 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.static("public"));
 
-const WORDS = [
-  "volcano",
-  "pineapple",
-  "giraffe",
-  "keyboard",
-  "rainbow",
-  "spaceship",
-  "cucumber",
-  "lighthouse",
-  "backpack",
-  "snowflake",
-  "accordion",
-  "mountain",
-  "bicycle",
-  "fireworks",
-  "marshmallow"
-];
+const CATEGORIES = {
+  "Everyday Objects": ["keyboard", "backpack", "accordion", "bicycle"],
+  Nature: ["volcano", "rainbow", "cucumber", "snowflake", "mountain"],
+  "Fun & Food": ["pineapple", "marshmallow", "fireworks"],
+  Adventures: ["giraffe", "spaceship", "lighthouse"]
+};
 
 const CLUE_DURATION_MS = 12000;
 
@@ -41,13 +30,16 @@ const state = {
   clueOrder: [],
   clueIndex: 0,
   activeCluePlayerId: null,
-  clueTimeout: null
+  clueTimeout: null,
+  hostId: null,
+  selectedCategory: Object.keys(CATEGORIES)[0]
 };
 
 const players = new Map();
 
-function randomWord() {
-  return WORDS[Math.floor(Math.random() * WORDS.length)];
+function randomWord(category) {
+  const words = CATEGORIES[category] || Object.values(CATEGORIES).flat();
+  return words[Math.floor(Math.random() * words.length)];
 }
 
 function broadcast(payload) {
@@ -67,6 +59,9 @@ function publicState() {
     phase: state.phase,
     timerEndsAt: state.timerEndsAt,
     activeCluePlayerId: state.activeCluePlayerId,
+    hostId: state.hostId,
+    categories: Object.keys(CATEGORIES),
+    selectedCategory: state.selectedCategory,
     players: Array.from(players.values()).map((player) => ({
       id: player.id,
       name: player.name,
@@ -152,7 +147,7 @@ function startRound() {
   }
 
   resetRoundData();
-  state.secretWord = randomWord();
+  state.secretWord = randomWord(state.selectedCategory);
   const playerIds = Array.from(players.keys());
   state.chameleonId = playerIds[Math.floor(Math.random() * playerIds.length)];
 
@@ -210,6 +205,9 @@ wss.on("connection", (ws) => {
   const playerId = `player-${Math.random().toString(36).slice(2, 10)}`;
   const player = { id: playerId, name: "", ws };
   players.set(playerId, player);
+  if (!state.hostId) {
+    state.hostId = playerId;
+  }
 
   ws.send(
     JSON.stringify({
@@ -237,7 +235,21 @@ wss.on("connection", (ws) => {
       if (state.phase === "clue" || state.phase === "vote" || state.phase === "guess") {
         return;
       }
+      if (player.id !== state.hostId) {
+        return;
+      }
       startRound();
+      return;
+    }
+
+    if (message.type === "select_category") {
+      if (player.id !== state.hostId) return;
+      if (state.phase === "clue" || state.phase === "vote" || state.phase === "guess") {
+        return;
+      }
+      if (!CATEGORIES[message.category]) return;
+      state.selectedCategory = message.category;
+      broadcast({ type: "state", data: publicState() });
       return;
     }
 
@@ -269,6 +281,9 @@ wss.on("connection", (ws) => {
 
   ws.on("close", () => {
     players.delete(playerId);
+    if (state.hostId === playerId) {
+      state.hostId = players.keys().next().value || null;
+    }
     if (state.phase === "clue") {
       const index = state.clueOrder.indexOf(playerId);
       if (index !== -1) {
@@ -290,6 +305,7 @@ wss.on("connection", (ws) => {
     if (players.size === 0) {
       resetRoundData();
       state.phase = "lobby";
+      state.hostId = null;
     }
     broadcast({ type: "state", data: publicState() });
   });

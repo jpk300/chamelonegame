@@ -86,6 +86,20 @@ input {
   color: #332f2f;
 }
 
+select {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 2px solid #ffd08a;
+  background: #fff7e8;
+  color: #332f2f;
+}
+
+select:disabled {
+  background: #f4f1f1;
+  border-color: #d7d0d0;
+  color: #8c7b7b;
+}
+
 input:disabled {
   background: #f4f1f1;
   border-color: #d7d0d0;
@@ -125,6 +139,18 @@ ul {
 
 #results-output p {
   margin: 8px 0;
+}
+
+.category-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#host-text {
+  margin: 0;
+  font-weight: 700;
+  color: #6b4f9b;
 }
 
 #clue-panel,

@@ -11,6 +11,8 @@ const nameInput = document.getElementById("name-input");
 const phaseText = document.getElementById("phase-text");
 const timerText = document.getElementById("timer-text");
 const startButton = document.getElementById("start-button");
+const hostText = document.getElementById("host-text");
+const categorySelect = document.getElementById("category-select");
 const secretWordEl = document.getElementById("secret-word");
 const cluePanel = document.getElementById("clue-panel");
 const clueTurnText = document.getElementById("clue-turn-text");
@@ -138,6 +140,29 @@ function updatePhase(state) {
   renderResults(state.lastResult);
 }
 
+function updateLobbyControls(state) {
+  const hostName =
+    state.players.find((player) => player.id === state.hostId)?.name || "Waiting for host...";
+  hostText.textContent = state.hostId ? `Host: ${hostName}` : "Host: waiting for players...";
+
+  const canManage = playerId && playerId === state.hostId;
+  const isRoundActive = state.phase === "clue" || state.phase === "vote" || state.phase === "guess";
+
+  startButton.disabled = !canManage || isRoundActive;
+  categorySelect.disabled = !canManage || isRoundActive;
+
+  categorySelect.innerHTML = "";
+  (state.categories || []).forEach((category) => {
+    const option = document.createElement("option");
+    option.value = category;
+    option.textContent = category;
+    categorySelect.appendChild(option);
+  });
+  if (state.selectedCategory) {
+    categorySelect.value = state.selectedCategory;
+  }
+}
+
 function updateSecret(word) {
   if (word) {
     secretWordEl.textContent = word;
@@ -151,6 +176,7 @@ function handleState(state) {
   renderPlayers(state.players);
   renderClues(state.players);
   updatePhase(state);
+  updateLobbyControls(state);
 }
 
 joinForm.addEventListener("submit", (event) => {
@@ -161,6 +187,10 @@ joinForm.addEventListener("submit", (event) => {
 
 startButton.addEventListener("click", () => {
   sendMessage({ type: "start_round" });
+});
+
+categorySelect.addEventListener("change", () => {
+  sendMessage({ type: "select_category", category: categorySelect.value });
 });
 
 clueForm.addEventListener("submit", (event) => {
