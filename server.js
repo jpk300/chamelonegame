@@ -46,13 +46,20 @@ const state = {
 const players = new Map();
 
 function randomWord(category, previousWord) {
-  const words = CATEGORIES[category] || Object.values(CATEGORIES).flat();
-  if (!previousWord || words.length <= 1) {
+  const categoryWords = CATEGORIES[category] || [];
+  const allWords = Object.values(CATEGORIES).flat();
+  const words = categoryWords.length ? categoryWords : allWords;
+  if (!previousWord) {
     return words[Math.floor(Math.random() * words.length)];
   }
+
   const filtered = words.filter((word) => word !== previousWord);
-  const candidates = filtered.length > 0 ? filtered : words;
-  return candidates[Math.floor(Math.random() * candidates.length)];
+  if (filtered.length > 0) {
+    return filtered[Math.floor(Math.random() * filtered.length)];
+  }
+
+  const fallback = allWords.filter((word) => word !== previousWord);
+  return fallback[Math.floor(Math.random() * fallback.length)];
 }
 
 function broadcast(payload) {
@@ -312,7 +319,9 @@ function handleGuess(guess) {
     state.guessTimeout = null;
   }
   state.timerEndsAt = null;
-  const correct = guess.trim().toLowerCase() === state.secretWord.toLowerCase();
+  const normalizedGuess = guess.trim().toLowerCase().replace(/\s+/g, "");
+  const normalizedSecret = state.secretWord.toLowerCase().replace(/\s+/g, "");
+  const correct = normalizedGuess === normalizedSecret;
   const winners = correct
     ? [state.chameleonId]
     : Array.from(players.keys()).filter((id) => id !== state.chameleonId);
