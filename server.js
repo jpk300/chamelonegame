@@ -76,7 +76,7 @@ const CATEGORIES = {
     "star",
     "moon"
   ],
-  "Fun & Food": [
+  "Food & Deserts": [
     "pineapple",
     "marshmallow",
     "fireworks",
@@ -214,7 +214,9 @@ const CATEGORIES = {
     "mario kart",
     "pokemon",
     "tetris",
-    "pac-man"
+    "pac-man",
+    "dr. mario",
+    "catan"
   ],
   Movies: [
     "coco",
@@ -235,7 +237,12 @@ const CATEGORIES = {
     "the incredibles",
     "inside out",
     "despicable me",
-    "home alone"
+    "home alone",
+    "wicked",
+    "the wizard of oz",
+    "transformers",
+    "home alone",
+    "wall-e"
   ],
   Sports: [
     "soccer",
