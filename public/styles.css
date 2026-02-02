@@ -133,6 +133,12 @@ h1 {
   font-weight: 700;
 }
 
+#clue-panel.your-turn {
+  border-color: #ff6f61;
+  box-shadow: 0 0 0 3px rgba(255, 111, 97, 0.25);
+  animation: pulse-highlight 1.4s ease-in-out infinite;
+}
+
 form {
   display: flex;
   flex-direction: column;
@@ -192,6 +198,29 @@ button:disabled {
   gap: 8px;
 }
 
+.player-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px dashed rgba(255, 145, 128, 0.4);
+}
+
+.player-item:last-child {
+  border-bottom: none;
+}
+
+.score-controls {
+  display: flex;
+  gap: 6px;
+}
+
+.score-button {
+  padding: 6px 10px;
+  font-size: 0.85rem;
+}
+
 #vote-status {
   margin: 0 0 12px;
   font-weight: 700;
@@ -238,4 +267,16 @@ ul {
 #results-panel,
 #vote-recap-panel {
   display: none;
+}
+
+@keyframes pulse-highlight {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.01);
+  }
+  100% {
+    transform: scale(1);
+  }
 }

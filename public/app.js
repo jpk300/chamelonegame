@@ -48,14 +48,43 @@ function sendMessage(payload) {
   ws.send(JSON.stringify(payload));
 }
 
-function renderPlayers(players) {
+function renderPlayers(state) {
   playersList.innerHTML = "";
-  players.forEach((player) => {
+  const isHost = state.hostId === playerId;
+  state.players.forEach((player) => {
     const li = document.createElement("li");
     const label = player.id === playerId ? `${player.name} (you)` : player.name;
     const points = player.score ?? 0;
     const pointLabel = points === 1 ? "point" : "points";
-    li.textContent = `${label || "Player"} — ${points} ${pointLabel}`;
+    li.classList.add("player-item");
+    const info = document.createElement("span");
+    info.textContent = `${label || "Player"} — ${points} ${pointLabel}`;
+    li.appendChild(info);
+
+    if (isHost) {
+      const controls = document.createElement("div");
+      controls.classList.add("score-controls");
+
+      const decrementButton = document.createElement("button");
+      decrementButton.type = "button";
+      decrementButton.classList.add("score-button");
+      decrementButton.textContent = "-1";
+      decrementButton.addEventListener("click", () => {
+        sendMessage({ type: "adjust_score", targetId: player.id, delta: -1 });
+      });
+
+      const incrementButton = document.createElement("button");
+      incrementButton.type = "button";
+      incrementButton.classList.add("score-button");
+      incrementButton.textContent = "+1";
+      incrementButton.addEventListener("click", () => {
+        sendMessage({ type: "adjust_score", targetId: player.id, delta: 1 });
+      });
+
+      controls.appendChild(decrementButton);
+      controls.appendChild(incrementButton);
+      li.appendChild(controls);
+    }
     playersList.appendChild(li);
   });
 }
@@ -107,7 +136,9 @@ function renderResults(result) {
   const chameleonName =
     currentState.players.find((player) => player.id === result.chameleonId)?.name || "Unknown";
   const outcomeText =
-    result.outcome === "team-wins"
+    result.reason === "chameleon-no-hint"
+      ? "The chameleon skipped their hint and loses the round."
+      : result.outcome === "team-wins"
       ? "The team wins! The chameleon guessed wrong."
       : result.outcome === "chameleon-wins"
       ? "The chameleon wins by guessing the word!"
@@ -209,8 +240,9 @@ function updatePhase(state) {
     const hasSubmitted = Boolean(state.players.find((player) => player.id === playerId)?.clue);
     timerText.textContent = `${activeName}'s turn: ${remaining}s left`;
     clueTurnText.textContent = isYourTurn
-      ? "It's your turn! Enter a one-word hint."
+      ? "Your turn! Give your hint now."
       : `Waiting for ${activeName} to share a hint.`;
+    cluePanel.classList.toggle("your-turn", isYourTurn);
     clueInput.disabled = !isYourTurn || hasSubmitted;
     clueForm.querySelector("button").disabled = !isYourTurn || hasSubmitted;
   } else if (showGuess) {
@@ -218,6 +250,7 @@ function updatePhase(state) {
     timerText.textContent = `Chameleon guess: ${remaining}s left`;
   } else {
     clueTurnText.textContent = "";
+    cluePanel.classList.remove("your-turn");
     clueInput.disabled = false;
     clueForm.querySelector("button").disabled = false;
     timerText.textContent = "";
@@ -293,7 +326,7 @@ function handleState(state) {
     isChameleon = false;
     secretWordEl.textContent = "Join to receive a word.";
   }
-  renderPlayers(state.players);
+  renderPlayers(state);
   renderClues(state.players);
   updatePhase(state);
   updateLobbyControls(state);

@@ -271,7 +271,7 @@ const CATEGORIES = {
   ]
 };
 
-const CLUE_DURATION_MS = 30000;
+const CLUE_DURATION_MS = 45000;
 const GUESS_DURATION_MS = 60000;
 
 const state = {
@@ -444,6 +444,39 @@ function awardPoints(winnerIds) {
   });
 }
 
+function adjustPlayerScore(playerId, delta) {
+  const player = players.get(playerId);
+  if (!player) return;
+  player.score += delta;
+}
+
+function normalizeWord(word) {
+  return word.toLowerCase().replace(/\s+/g, "");
+}
+
+function stripTenseSuffix(word) {
+  if (word.endsWith("ing")) {
+    return word.slice(0, -3);
+  }
+  if (word.endsWith("ed")) {
+    return word.slice(0, -2);
+  }
+  return word;
+}
+
+function isCorrectGuess(guess, secret) {
+  const normalizedGuess = normalizeWord(guess);
+  const normalizedSecret = normalizeWord(secret);
+  const guessBase = stripTenseSuffix(normalizedGuess);
+  const secretBase = stripTenseSuffix(normalizedSecret);
+  return (
+    normalizedGuess === normalizedSecret ||
+    guessBase === normalizedSecret ||
+    normalizedGuess === secretBase ||
+    guessBase === secretBase
+  );
+}
+
 function startVotePhase() {
   state.phase = "vote";
   state.timerEndsAt = null;
@@ -457,6 +490,46 @@ function startVotePhase() {
     state.guessTimeout = null;
   }
   broadcast({ type: "state", data: publicState() });
+}
+
+function endRoundDueToMissedClue(missedPlayerId) {
+  if (state.clueTimeout) {
+    clearTimeout(state.clueTimeout);
+    state.clueTimeout = null;
+  }
+  if (state.guessTimeout) {
+    clearTimeout(state.guessTimeout);
+    state.guessTimeout = null;
+  }
+  state.timerEndsAt = null;
+  state.activeCluePlayerId = null;
+  const winners = Array.from(players.keys()).filter((id) => id !== state.chameleonId);
+  awardPoints(winners);
+  state.phase = "reveal";
+  state.lastResult = {
+    outcome: "team-wins",
+    secretWord: state.secretWord,
+    chameleonId: state.chameleonId,
+    voteUnanimous: false,
+    roundWinners: winners,
+    reason: "chameleon-no-hint",
+    missedClueId: missedPlayerId
+  };
+  broadcast({ type: "state", data: publicState() });
+}
+
+function handleMissingClue(playerId) {
+  if (state.clues[playerId]) {
+    return;
+  }
+  state.clues[playerId] = "No hint";
+  adjustPlayerScore(playerId, -1);
+  if (playerId === state.chameleonId) {
+    endRoundDueToMissedClue(playerId);
+    return;
+  }
+  state.clueIndex += 1;
+  startNextClueTurn();
 }
 
 function startNextClueTurn() {
@@ -476,10 +549,8 @@ function startNextClueTurn() {
   state.clueTimeout = setTimeout(() => {
     if (state.phase !== "clue") return;
     if (!state.clues[state.activeCluePlayerId]) {
-      state.clues[state.activeCluePlayerId] = "No hint";
+      handleMissingClue(state.activeCluePlayerId);
     }
-    state.clueIndex += 1;
-    startNextClueTurn();
   }, CLUE_DURATION_MS);
 }
 
@@ -568,9 +639,7 @@ function handleGuess(guess) {
     state.guessTimeout = null;
   }
   state.timerEndsAt = null;
-  const normalizedGuess = guess.trim().toLowerCase().replace(/\s+/g, "");
-  const normalizedSecret = state.secretWord.toLowerCase().replace(/\s+/g, "");
-  const correct = normalizedGuess === normalizedSecret;
+  const correct = isCorrectGuess(guess.trim(), state.secretWord);
   const winners = correct
     ? [state.chameleonId]
     : Array.from(players.keys()).filter((id) => id !== state.chameleonId);
@@ -661,10 +730,25 @@ wss.on("connection", (ws) => {
       return;
     }
 
+    if (message.type === "adjust_score") {
+      if (player.id !== state.hostId) return;
+      if (!players.has(message.targetId)) return;
+      const delta = Number(message.delta);
+      if (!Number.isFinite(delta) || delta === 0) return;
+      adjustPlayerScore(message.targetId, delta);
+      broadcast({ type: "state", data: publicState() });
+      return;
+    }
+
     if (message.type === "submit_clue" && state.phase === "clue") {
       if (player.id !== state.activeCluePlayerId) return;
       if (state.clues[player.id]) return;
-      state.clues[player.id] = message.clue?.trim() || "No hint";
+      const submittedClue = message.clue?.trim() || "";
+      if (!submittedClue) {
+        handleMissingClue(player.id);
+        return;
+      }
+      state.clues[player.id] = submittedClue;
       state.clueIndex += 1;
       startNextClueTurn();
       return;
